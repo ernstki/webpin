@@ -1,0 +1,23 @@
+diff --git a/src/Application.vala b/src/Application.vala
+index f291a0d..617ee17 100644
+--- a/src/Application.vala
++++ b/src/Application.vala
+@@ -46,18 +46,6 @@ namespace Webpin {
+         construct {
+             this.flags |= GLib.ApplicationFlags.HANDLES_OPEN;
+             this.flags |= ApplicationFlags.HANDLES_COMMAND_LINE;
+-
+-            var action_quit = new SimpleAction ("quit", null);
+-            add_action (action_quit);
+-            string[] accel_quit = {"<Control>q"};
+-            set_accels_for_action ("app.quit", accel_quit);
+-            action_quit.activate.connect (
+-                () => {
+-                    if (mainwindow != null) {
+-                        mainwindow.destroy ();
+-                    }
+-                });
+-
+             create_cache_folders ();
+         }
+ 
