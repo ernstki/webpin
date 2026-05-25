@@ -228,10 +228,22 @@ namespace Webpin.Widgets.Views {
                             var session = new Soup.Session.with_options ("user_agent", "WebPin/0.1.0 (https://github.com/artemanufrij/webpin)");
                             session.timeout = 2;
                             var msg = new Soup.Message ("GET", url);
-                            session.send_message (msg);
+                            session.send (msg);
+                            var status = msg.get_status();
 
-                            if (msg.status_code == 200) {
-                                var body = (string)msg.response_body.data;
+                            if (status >= 200 && status < 300) {
+                                // var body = (string)msg.response_body.data;
+
+                                // (libsoup 3)
+                                // try {
+                                GLib.Bytes bytes = session.send_and_read(msg, null);
+                                string body = (string)bytes.get_data();
+                                // Use your body string here...
+                                // } catch (GLib.Error e) {
+                                    // Handle potential network errors
+                                //     stderr.printf("Error: %s\n", e.message);
+                                // }
+
                                 Regex regex = null;
                                 try {
                                     regex = new Regex ("(?<=theme-color).*((?<=content=)\"?(#[0-9a-fA-F]*))");
@@ -354,7 +366,12 @@ namespace Webpin.Widgets.Views {
             var session = new Soup.Session.with_options ("user_agent", "WebPin/0.1.0 (https://github.com/artemanufrij/webpin)");
             session.timeout = 2;
             var msg = new Soup.Message ("GET", url);
-            session.send_message (msg);
+
+            // session.send_message (msg);
+            // (libsoup 3.0)
+            GLib.Bytes bytes = session.send_and_read(msg, null);
+            string body = (string)bytes.get_data();
+
             if (msg.status_code == 200) {
                 tmp_icon_ext = ".png";
                 if (url.has_suffix (".svg")) {
@@ -370,11 +387,11 @@ namespace Webpin.Widgets.Views {
                 var d_file = File.new_for_path (tmp_icon_file);
 
                 bool copy_done = false;
-                try {
-                    copy_done = s_file.copy (d_file, FileCopyFlags.OVERWRITE);
-                } catch (Error err) {
-                    stdout.printf ("%s\n", err.message);
-                }
+                // try {
+                copy_done = s_file.copy (d_file, FileCopyFlags.OVERWRITE);
+                // } catch (Error err) {
+                //     stdout.printf ("%s\n", err.message);
+                // }
                 if (copy_done && tmp_icon_ext != ".svg") {
                     try {
                         var pixbuf = new Gdk.Pixbuf.from_file (tmp_icon_file);

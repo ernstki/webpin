@@ -28,12 +28,16 @@
 As first you need elementary SDK
 ```
 sudo apt install elementary-sdk
+
+# on non-elementary systems, you will also need
+sudo apt install valac libgranite-dev gvfs-backends
 ```
 
 Install dependencies
 ```
-sudo apt install libwebkit2gtk-4.0-dev
+sudo apt install libwebkit2gtk-4.1-dev
 ```
+
 
 Clone repository and change directory
 ```
