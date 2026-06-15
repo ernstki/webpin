@@ -203,7 +203,7 @@ namespace Webpin.Windows {
         private void set_color (Gdk.RGBA color) {
             var mid = color.red + color.blue + color.green;
             color.alpha = 1;
-            if (mid / 3 < 0.5) {
+            if (desktop_file.auto_dark_mode && mid / 3 < 0.5) {
                 Gtk.Settings.get_default ().gtk_application_prefer_dark_theme = true;
             }
             Granite.Widgets.Utils.set_color_primary (this, color);
