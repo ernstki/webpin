@@ -46,6 +46,7 @@ namespace Webpin {
                             X-Webpin-PrimaryColor=rgba (222,222,222,1)
                             X-Webpin-View-Mode=default
                             X-Webpin-AutoDarkMode=false
+                            X-Webpin-PrivateMode=true
                             Actions=Remove;
 
                             [Desktop Action Remove]
@@ -82,6 +83,18 @@ namespace Webpin {
                     warning (err.message);
                 }
                 return false;
+            }
+        }
+
+        public bool private_mode {
+            get {
+                try {
+                    file.load_from_file (info.filename, KeyFileFlags.NONE);
+                    return file.get_string ("Desktop Entry", "X-Webpin-PrivateMode") == "true";
+                } catch (Error err) {
+                    warning (err.message);
+                }
+                return true; // Default to true as requested
             }
         }
 
@@ -130,7 +143,7 @@ namespace Webpin {
             }
         }
 
-        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui, bool auto_dark_mode) {
+        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui, bool auto_dark_mode, bool private_mode) {
             this.name = name;
             this.url = url.replace ("%", "%%");
             this.icon = icon;
@@ -151,6 +164,7 @@ namespace Webpin {
             file.set_string ("Desktop Entry", "X-Webpin-StayOpen", stay_open.to_string ());
             file.set_string ("Desktop Entry", "X-Webpin-View-Mode", minimal_ui ? "minimal" : "default");
             file.set_string ("Desktop Entry", "X-Webpin-AutoDarkMode", auto_dark_mode.to_string ());
+            file.set_string ("Desktop Entry", "X-Webpin-PrivateMode", private_mode.to_string ());
             file.set_string ("Desktop Action Remove", "Exec", "com.github.artemanufrij.webpin --remove " + url);
         }
 

@@ -136,15 +136,15 @@ namespace Webpin.Widgets {
         public signal void edit_clicked ();
 
         public ActionMenu () {
-            var delete_button = new Gtk.Button.from_icon_name ("edit-delete-symbolic", Gtk.IconSize.BUTTON);
-            delete_button.tooltip_text = _("Delete Webapp");
-            delete_button.relief = Gtk.ReliefStyle.NONE;
-            delete_button.clicked.connect (() => { delete_clicked (); });
-
             var edit_button = new Gtk.Button.from_icon_name ("edit-symbolic", Gtk.IconSize.BUTTON);
             edit_button.tooltip_text = _("Edit Webapp Properties");
             edit_button.relief = Gtk.ReliefStyle.NONE;
             edit_button.clicked.connect (() => { edit_clicked (); });
+
+            var delete_button = new Gtk.Button.from_icon_name ("edit-delete-symbolic", Gtk.IconSize.BUTTON);
+            delete_button.tooltip_text = _("Delete Webapp");
+            delete_button.relief = Gtk.ReliefStyle.NONE;
+            delete_button.clicked.connect (() => { delete_clicked (); });
 
             this.add (edit_button);
             this.add (delete_button);

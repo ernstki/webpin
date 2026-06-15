@@ -38,14 +38,14 @@ namespace Webpin.Widgets.Views {
         Gtk.Entry app_name_entry;
         Gtk.Entry app_url_entry;
         Gtk.Entry icon_name_entry;
-        Gtk.CheckButton save_cookies_check;
-        Gtk.CheckButton save_password_check;
+        Gtk.CheckButton private_mode_check;
         Gtk.CheckButton stay_open_when_closed;
         Gtk.CheckButton minimal_view_mode;
         Gtk.CheckButton auto_dark_mode_check;
         Gtk.Popover icon_selector_popover;
         Gtk.FileChooserDialog file_chooser;
         Gtk.Button accept_button;
+        Gtk.Button clear_cookies_button;
         Gtk.ColorButton primary_color_button;
         GLib.Regex protocol_regex;
         Gee.HashMap<string, GLib.AppInfo> apps;
@@ -127,11 +127,8 @@ namespace Webpin.Widgets.Views {
             });
 
             //checkbuttons
-            save_cookies_check = new Gtk.CheckButton.with_label (_ ("Save cookies"));
-            save_cookies_check.active = true;
-
-            save_password_check = new Gtk.CheckButton.with_label (_ ("Save login information"));
-            save_password_check.active = false;
+            private_mode_check = new Gtk.CheckButton.with_label (_ ("Private Mode (Clear cache and cookies on exit)"));
+            private_mode_check.active = true;
 
             stay_open_when_closed = new Gtk.CheckButton.with_label (_ ("Run in background if closed"));
             stay_open_when_closed.active = false;
@@ -159,8 +156,7 @@ namespace Webpin.Widgets.Views {
 
             //app options
             var app_options_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 5);
-            app_options_box.pack_start (save_cookies_check, true, false, 0);
-            app_options_box.pack_start (save_password_check, true, false, 0);
+            app_options_box.pack_start (private_mode_check, true, false, 0);
             app_options_box.pack_start (stay_open_when_closed, true, false, 0);
             app_options_box.pack_start (minimal_view_mode, true, false, 0);
             app_options_box.pack_start (auto_dark_mode_check, true, false, 0);
@@ -174,11 +170,20 @@ namespace Webpin.Widgets.Views {
             accept_button.activate.connect (on_accept);
             accept_button.clicked.connect (on_accept);
 
+            clear_cookies_button = new Gtk.Button.with_label (_ ("Clear Cookies"));
+            clear_cookies_button.halign = Gtk.Align.START;
+            clear_cookies_button.get_style_context ().add_class ("destructive-action");
+            clear_cookies_button.clicked.connect (clear_cookies);
+
+            var bottom_box = new Gtk.Box (Gtk.Orientation.HORIZONTAL, 5);
+            bottom_box.pack_start (clear_cookies_button, false, false, 0);
+            bottom_box.pack_end (accept_button, false, false, 0);
+
             //all sections together
             pack_start (message, true, false, 0);
             pack_start (app_info_box, true, false, 0);
             pack_start (app_options_box, true, false, 0);
-            pack_end (accept_button, false, false, 0);
+            pack_end (bottom_box, false, false, 0);
 
             //signals and handlers
             icon_button.clicked.connect (() => {
@@ -515,8 +520,10 @@ namespace Webpin.Widgets.Views {
             app_name_entry.get_style_context ().remove_class ("error");
             app_url_entry.get_style_context ().remove_class ("error");
             icon_button.set_image (new Gtk.Image.from_icon_name (default_app_icon, Gtk.IconSize.DIALOG));
+            private_mode_check.active = true;
             minimal_view_mode.active = false;
             auto_dark_mode_check.active = false;
+            clear_cookies_button.hide ();
             mode = assistant_mode.new_app;
         }
 
@@ -546,7 +553,7 @@ namespace Webpin.Widgets.Views {
             }
 
             if (app_icon_valid && app_name_valid && app_url_valid) {
-                var desktop_file = new DesktopFile (name, url, icon, stay_open_when_closed.active, minimal_view_mode.active, auto_dark_mode_check.active);
+                var desktop_file = new DesktopFile (name, url, icon, stay_open_when_closed.active, minimal_view_mode.active, auto_dark_mode_check.active, private_mode_check.active);
                 switch (mode) {
                     case assistant_mode.new_app :
                         application_created (desktop_file.save_to_file ());
@@ -569,6 +576,7 @@ namespace Webpin.Widgets.Views {
                 app_name_entry.set_sensitive (false);
                 app_url_entry.text = desktop_file.url.replace ("%%", "%");
                 icon_name_entry.text = desktop_file.icon;
+                private_mode_check.active = desktop_file.private_mode;
                 stay_open_when_closed.active = desktop_file.hide_on_close;
                 minimal_view_mode.active = desktop_file.view_mode == "minimal";
                 auto_dark_mode_check.active = desktop_file.auto_dark_mode;
@@ -577,9 +585,50 @@ namespace Webpin.Widgets.Views {
                 } else {
                     primary_color_button.set_rgba (default_color);
                 }
+                clear_cookies_button.show ();
                 reset_grab_color_and_icon ();
                 update_app_icon ();
             }
+        }
+
+        private void clear_cookies () {
+            if (mode != assistant_mode.edit_app) return;
+
+            var dialog = new Gtk.MessageDialog (this.get_toplevel () as Gtk.Window,
+                                                Gtk.DialogFlags.MODAL,
+                                                Gtk.MessageType.QUESTION,
+                                                Gtk.ButtonsType.NONE,
+                                                _("Are you sure you want to clear cookies for '%s'?").printf (app_name_entry.text));
+
+            dialog.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
+            var clear_btn = dialog.add_button (_("Clear"), Gtk.ResponseType.YES);
+            clear_btn.get_style_context ().add_class ("destructive-action");
+
+            if (dialog.run () == Gtk.ResponseType.YES) {
+                string[] dirs_to_delete = {
+                    Path.build_filename (Environment.get_user_data_dir (), "webpin", "data", app_name_entry.text),
+                    Path.build_filename (Environment.get_user_cache_dir (), "webpin", "cache", app_name_entry.text)
+                };
+
+                foreach (string dir_path in dirs_to_delete) {
+                    try {
+                        File file = File.new_for_path (dir_path);
+                        if (file.query_exists ()) {
+                            var enumerator = file.enumerate_children (FileAttribute.STANDARD_NAME, 0);
+                            FileInfo file_info;
+                            while ((file_info = enumerator.next_file ()) != null) {
+                                File child = file.get_child (file_info.get_name ());
+                                child.delete ();
+                            }
+                            file.delete ();
+                        }
+                    } catch (Error e) {
+                        warning (e.message);
+                    }
+                }
+            }
+
+            dialog.destroy ();
         }
     }
 }
