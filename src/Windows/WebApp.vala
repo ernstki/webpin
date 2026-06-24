@@ -177,12 +177,12 @@ namespace Webpin.Windows {
             copy_url.valign = Gtk.Align.CENTER;
             copy_url.tooltip_text = _ ("Copy URL into clipboard");
             copy_url.clicked.connect (() => {
-                // Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
-                try {
-                    Process.spawn_command_line_async ("xdg-open " + browser.web_view.uri);
-                } catch (Error e) {
-                    warning (e.message);
-                }
+                Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
+                //try {
+                //    Process.spawn_command_line_async ("xdg-open " + browser.web_view.uri);
+                //} catch (Error e) {
+                //    warning (e.message);
+                //}
             });
             headerbar.pack_end (copy_url);
         }
