@@ -110,9 +110,23 @@ namespace Webpin.Widgets {
         }
 
         private void remove_application () {
-            desktop_file.delete_file ();
-            deleted ();
-            this.destroy ();
+            var dialog = new Gtk.MessageDialog (this.get_toplevel () as Gtk.Window,
+                                                Gtk.DialogFlags.MODAL,
+                                                Gtk.MessageType.QUESTION,
+                                                Gtk.ButtonsType.NONE,
+                                                _("Are you sure you want to delete '%s'?").printf (desktop_file.name));
+
+            dialog.add_button (_("Cancel"), Gtk.ResponseType.CANCEL);
+            var delete_btn = dialog.add_button (_("Delete"), Gtk.ResponseType.YES);
+            delete_btn.get_style_context ().add_class ("destructive-action");
+
+            if (dialog.run () == Gtk.ResponseType.YES) {
+                desktop_file.delete_file ();
+                deleted ();
+                this.destroy ();
+            }
+
+            dialog.destroy ();
         }
     }
 

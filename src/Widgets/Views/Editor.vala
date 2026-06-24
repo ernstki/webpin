@@ -42,6 +42,7 @@ namespace Webpin.Widgets.Views {
         Gtk.CheckButton save_password_check;
         Gtk.CheckButton stay_open_when_closed;
         Gtk.CheckButton minimal_view_mode;
+        Gtk.CheckButton auto_dark_mode_check;
         Gtk.Popover icon_selector_popover;
         Gtk.FileChooserDialog file_chooser;
         Gtk.Button accept_button;
@@ -128,12 +129,20 @@ namespace Webpin.Widgets.Views {
             //checkbuttons
             save_cookies_check = new Gtk.CheckButton.with_label (_ ("Save cookies"));
             save_cookies_check.active = true;
+
             save_password_check = new Gtk.CheckButton.with_label (_ ("Save login information"));
             save_password_check.active = false;
+
             stay_open_when_closed = new Gtk.CheckButton.with_label (_ ("Run in background if closed"));
             stay_open_when_closed.active = false;
+
             minimal_view_mode = new Gtk.CheckButton.with_label (_("Use minimal UI"));
+            minimal_view_mode.tooltip_text = _ ("Hide the header bar and navigation buttons for a cleaner look");
             minimal_view_mode.active = false;
+
+            auto_dark_mode_check = new Gtk.CheckButton.with_label (_("Automatic dark mode"));
+            auto_dark_mode_check.tooltip_text = _ ("Automatically switch app and website UI to a dark theme based on the chosen titlebar colors");
+            auto_dark_mode_check.active = false;
 
 
             //app information section
@@ -154,6 +163,7 @@ namespace Webpin.Widgets.Views {
             app_options_box.pack_start (save_password_check, true, false, 0);
             app_options_box.pack_start (stay_open_when_closed, true, false, 0);
             app_options_box.pack_start (minimal_view_mode, true, false, 0);
+            app_options_box.pack_start (auto_dark_mode_check, true, false, 0);
             app_options_box.halign = Gtk.Align.CENTER;
 
             //create button
@@ -506,6 +516,7 @@ namespace Webpin.Widgets.Views {
             app_url_entry.get_style_context ().remove_class ("error");
             icon_button.set_image (new Gtk.Image.from_icon_name (default_app_icon, Gtk.IconSize.DIALOG));
             minimal_view_mode.active = false;
+            auto_dark_mode_check.active = false;
             mode = assistant_mode.new_app;
         }
 
@@ -535,7 +546,7 @@ namespace Webpin.Widgets.Views {
             }
 
             if (app_icon_valid && app_name_valid && app_url_valid) {
-                var desktop_file = new DesktopFile (name, url, icon, stay_open_when_closed.active, minimal_view_mode.active);
+                var desktop_file = new DesktopFile (name, url, icon, stay_open_when_closed.active, minimal_view_mode.active, auto_dark_mode_check.active);
                 switch (mode) {
                     case assistant_mode.new_app :
                         application_created (desktop_file.save_to_file ());
@@ -560,6 +571,7 @@ namespace Webpin.Widgets.Views {
                 icon_name_entry.text = desktop_file.icon;
                 stay_open_when_closed.active = desktop_file.hide_on_close;
                 minimal_view_mode.active = desktop_file.view_mode == "minimal";
+                auto_dark_mode_check.active = desktop_file.auto_dark_mode;
                 if (desktop_file.color != null) {
                     primary_color_button.set_rgba (desktop_file.color);
                 } else {

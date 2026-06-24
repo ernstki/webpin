@@ -2,3 +2,5 @@
 .*sw?
 .vscode/
 build/
+.aider*
+.gdb_history

@@ -45,6 +45,7 @@ namespace Webpin {
                             StartupWMClass=Webpin
                             X-Webpin-PrimaryColor=rgba (222,222,222,1)
                             X-Webpin-View-Mode=default
+                            X-Webpin-AutoDarkMode=false
                             Actions=Remove;
 
                             [Desktop Action Remove]
@@ -65,6 +66,18 @@ namespace Webpin {
                 try {
                     file.load_from_file (info.filename, KeyFileFlags.NONE);
                     return file.get_string ("Desktop Entry", "X-Webpin-StayOpen") == "true";
+                } catch (Error err) {
+                    warning (err.message);
+                }
+                return false;
+            }
+        }
+
+        public bool auto_dark_mode {
+            get {
+                try {
+                    file.load_from_file (info.filename, KeyFileFlags.NONE);
+                    return file.get_string ("Desktop Entry", "X-Webpin-AutoDarkMode") == "true";
                 } catch (Error err) {
                     warning (err.message);
                 }
@@ -117,7 +130,7 @@ namespace Webpin {
             }
         }
 
-        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui) {
+        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui, bool auto_dark_mode) {
             this.name = name;
             this.url = url.replace ("%", "%%");
             this.icon = icon;
@@ -137,6 +150,7 @@ namespace Webpin {
             file.set_string ("Desktop Entry", "StartupWMClass", url);
             file.set_string ("Desktop Entry", "X-Webpin-StayOpen", stay_open.to_string ());
             file.set_string ("Desktop Entry", "X-Webpin-View-Mode", minimal_ui ? "minimal" : "default");
+            file.set_string ("Desktop Entry", "X-Webpin-AutoDarkMode", auto_dark_mode.to_string ());
             file.set_string ("Desktop Action Remove", "Exec", "com.github.artemanufrij.webpin --remove " + url);
         }
 
