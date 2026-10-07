@@ -238,111 +238,107 @@ namespace Webpin.Widgets.Views {
                             var session = new Soup.Session.with_options ("user_agent", "WebPin/0.1.0 (https://github.com/artemanufrij/webpin)");
                             session.timeout = 2;
                             var msg = new Soup.Message ("GET", url);
-                            session.send (msg);
-                            var status = msg.get_status();
 
-                            if (status >= 200 && status < 300) {
-                                // var body = (string)msg.response_body.data;
-
-                                // (libsoup 3)
-                                // try {
+                            try {
                                 GLib.Bytes bytes = session.send_and_read(msg, null);
-                                string body = (string)bytes.get_data();
-                                // Use your body string here...
-                                // } catch (GLib.Error e) {
-                                    // Handle potential network errors
-                                //     stderr.printf("Error: %s\n", e.message);
-                                // }
+                                var status = msg.get_status();
 
-                                Regex regex = null;
-                                try {
-                                    regex = new Regex ("(?<=theme-color).*((?<=content=)\"?(#[0-9a-fA-F]*))");
-                                } catch (Error err) {
-                                    warning (err.message);
-                                }
+                                if (status >= 200 && status < 300) {
+                                    string body = (string)bytes.get_data();
 
-                                MatchInfo match_info = null;
-                                if (regex != null && regex.match (body, 0, out match_info)) {
-                                    var result = match_info.fetch (match_info.get_match_count () - 1);
-                                    stdout.printf("color: %s\n", result);
-                                    Gdk.RGBA return_value = {0, 0, 0, 1};
-                                    if (return_value.parse (result)) {
+                                    Regex regex = null;
+                                    try {
+                                        regex = new Regex ("(?<=theme-color).*((?<=content=)\"?(#[0-9a-fA-F]*))");
+                                    } catch (Error err) {
+                                        warning (err.message);
+                                    }
+
+                                    MatchInfo match_info = null;
+                                    if (regex != null && regex.match (body, 0, out match_info)) {
+                                        var result = match_info.fetch (match_info.get_match_count () - 1);
+                                        stdout.printf("color: %s\n", result);
+                                        Gdk.RGBA return_value = {0, 0, 0, 1};
+                                        if (return_value.parse (result)) {
+                                            Idle.add (
+                                                () => {
+                                                    primary_color_button.set_rgba (return_value);
+                                                    return false;
+                                                });
+                                        }
+                                    }
+                                    var icon_path = "";
+                                    if (tmp_icon_file == "") {
+                                        try {
+                                            regex = new Regex ("(?<=\"fluid-icon\" href=\")[/\\w\\.:\\-]*");
+                                            if (regex.match (body, 0, out match_info)) {
+                                                icon_path = format_icon_path (url, match_info.fetch (0));
+                                                download_icon (icon_path);
+                                            }
+                                        } catch (Error err) {
+                                            warning (err.message);
+                                        }
+                                    }
+
+                                    if (tmp_icon_file == "") {
+                                        try {
+                                            regex = new Regex ("(?<=rel=icon)[\\w\\+\\/=\\s]*(?<=href=)([\\w\\+\\/=\\.)]*64\\.(svg|png))");
+                                            if (regex.match (body, 0, out match_info)) {
+                                                icon_path = format_icon_path (url,  match_info.fetch (match_info.get_match_count () - 2));
+                                                download_icon (icon_path);
+                                            }
+                                        } catch (Error err) {
+                                            warning (err.message);
+                                        }
+                                    }
+
+                                    if (tmp_icon_file == "") {
+                                        try {
+                                            regex = new Regex ("(?<=rel=icon)[\\w\\+\\/=\\s]*(?<=href=)([\\w\\+\\/=\\.)]*96\\.(svg|png))");
+                                            if (regex.match (body, 0, out match_info)) {
+                                                icon_path = format_icon_path (url,  match_info.fetch (match_info.get_match_count () - 1));
+                                                download_icon (icon_path);
+                                            }
+                                        } catch (Error err) {
+                                            warning (err.message);
+                                        }
+                                    }
+
+                                    if (tmp_icon_file == "") {
+                                        try {
+                                            regex = new Regex ("(\"apple-touch-icon\").*href=\"([\\-/\\w]*.png)");
+                                            if (regex.match (body, 0, out match_info)) {
+                                                icon_path = format_icon_path (url, match_info.fetch (match_info.get_match_count () - 1));
+                                                download_icon (icon_path);
+                                            }
+                                        } catch (Error err) {
+                                            warning (err.message);
+                                        }
+                                    }
+
+                                    if (tmp_icon_file == "") {
+                                        try {
+                                            regex = new Regex ("(?<=\"mask-icon\" href=\")[/\\w\\.:\\-]*");
+                                            if (regex.match (body, 0, out match_info)) {
+                                                icon_path = format_icon_path (url, match_info.fetch (0));
+                                                download_icon (icon_path);
+                                            }
+                                        } catch (Error err) {
+                                            warning (err.message);
+                                        }
+                                    }
+
+                                    if (tmp_icon_file != "") {
                                         Idle.add (
                                             () => {
-                                                primary_color_button.set_rgba (return_value);
+                                                icon_name_entry.set_text (tmp_icon_file);
                                                 return false;
                                             });
                                     }
                                 }
-                                var icon_path = "";
-                                if (tmp_icon_file == "") {
-                                    try {
-                                        regex = new Regex ("(?<=\"fluid-icon\" href=\")[/\\w\\.:\\-]*");
-                                        if (regex.match (body, 0, out match_info)) {
-                                            icon_path = format_icon_path (url, match_info.fetch (0));
-                                            download_icon (icon_path);
-                                        }
-                                    } catch (Error err) {
-                                        warning (err.message);
-                                    }
-                                }
-
-                                if (tmp_icon_file == "") {
-                                    try {
-                                        regex = new Regex ("(?<=rel=icon)[\\w\\+\\/=\\s]*(?<=href=)([\\w\\+\\/=\\.)]*64\\.(svg|png))");
-                                        if (regex.match (body, 0, out match_info)) {
-                                            icon_path = format_icon_path (url,  match_info.fetch (match_info.get_match_count () - 2));
-                                            download_icon (icon_path);
-                                        }
-                                    } catch (Error err) {
-                                        warning (err.message);
-                                    }
-                                }
-
-                                if (tmp_icon_file == "") {
-                                    try {
-                                        regex = new Regex ("(?<=rel=icon)[\\w\\+\\/=\\s]*(?<=href=)([\\w\\+\\/=\\.)]*96\\.(svg|png))");
-                                        if (regex.match (body, 0, out match_info)) {
-                                            icon_path = format_icon_path (url,  match_info.fetch (match_info.get_match_count () - 1));
-                                            download_icon (icon_path);
-                                        }
-                                    } catch (Error err) {
-                                        warning (err.message);
-                                    }
-                                }
-
-                                if (tmp_icon_file == "") {
-                                    try {
-                                        regex = new Regex ("(\"apple-touch-icon\").*href=\"([\\-/\\w]*.png)");
-                                        if (regex.match (body, 0, out match_info)) {
-                                            icon_path = format_icon_path (url, match_info.fetch (match_info.get_match_count () - 1));
-                                            download_icon (icon_path);
-                                        }
-                                    } catch (Error err) {
-                                        warning (err.message);
-                                    }
-                                }
-
-                                if (tmp_icon_file == "") {
-                                    try {
-                                        regex = new Regex ("(?<=\"mask-icon\" href=\")[/\\w\\.:\\-]*");
-                                        if (regex.match (body, 0, out match_info)) {
-                                            icon_path = format_icon_path (url, match_info.fetch (0));
-                                            download_icon (icon_path);
-                                        }
-                                    } catch (Error err) {
-                                        warning (err.message);
-                                    }
-                                }
-                                
-                                if (tmp_icon_file != "") {
-                                    Idle.add (
-                                        () => {
-                                            icon_name_entry.set_text (tmp_icon_file);
-                                            return false;
-                                        });
-                                }
+                            } catch (GLib.Error e) {
+                                stderr.printf("Error: %s\n", e.message);
                             }
+
                             msg.dispose ();
                             session.dispose ();
 
