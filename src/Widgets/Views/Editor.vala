@@ -128,7 +128,7 @@ namespace Webpin.Widgets.Views {
 
             //checkbuttons
             save_cookies_check = new Gtk.CheckButton.with_label (_ ("Save cookies"));
-            save_cookies_check.active = true;
+            save_cookies_check.active = false;
 
             save_password_check = new Gtk.CheckButton.with_label (_ ("Save login information"));
             save_password_check.active = false;
