@@ -35,6 +35,15 @@ namespace Webpin.Widgets.Views {
 
         Gtk.FlowBox web_items;
 
+        public string search_text {
+            get { return _search_text; }
+            set {
+                _search_text = value;
+                web_items.invalidate_filter ();
+            }
+        }
+        private string _search_text = "";
+
         public bool has_items { get { return web_items.get_children ().length () > 0; } }
 
         public WebItemsView () {
@@ -45,6 +54,7 @@ namespace Webpin.Widgets.Views {
 
             web_items = new Gtk.FlowBox();
             web_items.set_sort_func (sort_func);
+            web_items.set_filter_func (filter_func);
             web_items.valign = Gtk.Align.START;
             web_items.vexpand = false;
             web_items.homogeneous = true;
@@ -79,21 +89,12 @@ namespace Webpin.Widgets.Views {
             var web_item = new WebItem (app);
             web_item.edit_request.connect ((desktop_file) => {
                 edit_request (desktop_file);
-                web_items.unselect_all ();
             });
             web_item.deleted.connect (() => {
                 app_deleted ();
             });
             web_items.add (web_item);
             web_items.show_all ();
-        }
-
-        public void select_last_item () {
-            web_items.select_child (web_items.get_child_at_index ((int)web_items.get_children ().length () - 1));
-        }
-
-        public void select_first_item () {
-            web_items.select_child (web_items.get_child_at_index (0));
         }
 
         public void update_button (GLib.DesktopAppInfo app) {
@@ -103,7 +104,6 @@ namespace Webpin.Widgets.Views {
 
                     if (app_icon.desktop_file.name == app.get_display_name ()) {
                         app_icon.set_new_desktopfile (new DesktopFile.from_desktopappinfo (app));
-                        web_items.select_child (item as Gtk.FlowBoxChild);
                         break;
                     }
                 }
@@ -115,6 +115,21 @@ namespace Webpin.Widgets.Views {
             var item2 = (WebItem)child2;
 
             return item1.title.collate (item2.title);
+        }
+
+        private bool filter_func (Gtk.FlowBoxChild child) {
+            if (search_text == null || search_text == "") return true;
+            var item = (WebItem) child;
+            return item.title.down ().has_prefix (search_text.down ());
+        }
+
+        public void activate_first_match () {
+            foreach (var child in web_items.get_children ()) {
+                if (child.get_child_visible ()) {
+                    ((Gtk.FlowBoxChild) child).activate ();
+                    break;
+                }
+            }
         }
     }
 }

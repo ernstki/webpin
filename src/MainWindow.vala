@@ -34,6 +34,8 @@ namespace Webpin {
         Gtk.HeaderBar headerbar;
         Gtk.Button back_button;
         Gtk.Button add_button;
+        Gtk.SearchBar search_bar;
+        Gtk.SearchEntry search_entry;
 
         Widgets.Views.Editor editor;
         Widgets.Views.WebItemsView web_items_view;
@@ -90,7 +92,27 @@ namespace Webpin {
             stack.add_named (web_items_view, "apps_view");
             stack.add_named (editor, "editor");
 
-            add (stack);
+            search_bar = new Gtk.SearchBar ();
+            search_entry = new Gtk.SearchEntry ();
+            search_bar.connect_entry (search_entry);
+            search_bar.add (search_entry);
+            search_bar.show_close_button = true;
+
+            search_entry.search_changed.connect (() => {
+                web_items_view.search_text = search_entry.text;
+            });
+            search_entry.activate.connect (() => {
+                web_items_view.activate_first_match ();
+            });
+            search_entry.key_press_event.connect ((event) => {
+                return false;
+            });
+
+            var main_box = new Gtk.Box (Gtk.Orientation.VERTICAL, 0);
+            main_box.pack_start (search_bar, false, false, 0);
+            main_box.pack_start (stack, true, true, 0);
+
+            add (main_box);
 
             web_items_view.add_request.connect (() => {
                 show_assistant ();
@@ -108,7 +130,6 @@ namespace Webpin {
 
             editor.application_created.connect ((new_file) => {
                 web_items_view.add_web_item (new_file);
-                web_items_view.select_last_item ();
                 show_apps_view ();
             });
 
@@ -135,15 +156,32 @@ namespace Webpin {
             });
 
             this.key_press_event.connect ((event) => {
-                if ((event.state & Gdk.ModifierType.CONTROL_MASK) != 0 && event.keyval == Gdk.Key.n) {
-                    if (add_button.visible) {
-                        show_assistant ();
-                        return true;
-                    }
-                } else if (event.keyval == Gdk.Key.Escape) {
+                if (event.keyval == Gdk.Key.Escape) {
                     if (stack.visible_child_name == "editor" && !editor.has_changes ()) {
                         back_button.clicked ();
                         return true;
+                    } else if (stack.visible_child_name == "apps_view" && search_bar.search_mode_enabled) {
+                        search_entry.text = "";
+                        search_bar.search_mode_enabled = false;
+                        return true;
+                    }
+                }
+
+                if (stack.visible_child_name == "apps_view" && event.keyval != Gdk.Key.Return && event.keyval != Gdk.Key.KP_Enter && search_bar.handle_event (event)) {
+                    return true;
+                }
+                if ((event.state & Gdk.ModifierType.CONTROL_MASK) != 0) {
+                    if (event.keyval == Gdk.Key.n) {
+                        if (add_button.visible) {
+                            show_assistant ();
+                            return true;
+                        }
+                    } else if (event.keyval == Gdk.Key.f) {
+                        if (stack.visible_child_name == "apps_view") {
+                            search_bar.search_mode_enabled = true;
+                            search_entry.grab_focus ();
+                            return true;
+                        }
                     }
                 }
                 return false;
