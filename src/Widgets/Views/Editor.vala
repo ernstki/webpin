@@ -56,6 +56,8 @@ namespace Webpin.Widgets.Views {
         private bool app_url_valid = false;
         private bool app_icon_valid = true;
 
+        private bool is_dirty = false;
+
         private assistant_mode mode { get; set; default = assistant_mode.new_app; }
 
         Gdk.RGBA default_color;
@@ -123,6 +125,7 @@ namespace Webpin.Widgets.Views {
             primary_color_button.use_alpha = false;
             primary_color_button.color_activated.connect ((color) => {
                 validate ();
+                is_dirty = true;
                 stdout.printf ("COLOR %s\n", color.to_string ());
             });
 
@@ -181,6 +184,12 @@ namespace Webpin.Widgets.Views {
             pack_start (app_options_box, true, false, 0);
             pack_end (accept_button, false, false, 0);
 
+            // track changes for checkboxes
+            save_cookies_check.toggled.connect (() => { is_dirty = true; });
+            stay_open_when_closed.toggled.connect (() => { is_dirty = true; });
+            minimal_view_mode.toggled.connect (() => { is_dirty = true; });
+            auto_dark_mode_check.toggled.connect (() => { is_dirty = true; });
+
             //signals and handlers
             icon_button.clicked.connect (() => {
                 icon_selector_popover.show_all ();
@@ -199,6 +208,7 @@ namespace Webpin.Widgets.Views {
                     app_url_entry.get_style_context ().remove_class ("error");
                     app_url_valid = true;
                 }
+                is_dirty = true;
                 validate ();
             });
 
@@ -213,6 +223,7 @@ namespace Webpin.Widgets.Views {
                     app_name_entry.get_style_context ().remove_class ("error");
                     app_name_valid = true;
                 }
+                is_dirty = true;
                 validate ();
             });
 
@@ -420,6 +431,7 @@ namespace Webpin.Widgets.Views {
         private void update_app_icon () {
             string icon = icon_name_entry.get_text ();
 
+            is_dirty = true;
             if (icon == "") {
                 app_icon_valid = true;
                 validate ();
@@ -515,6 +527,7 @@ namespace Webpin.Widgets.Views {
             minimal_view_mode.active = false;
             auto_dark_mode_check.active = false;
             mode = assistant_mode.new_app;
+            is_dirty = false;
         }
 
         private void on_accept () {
@@ -581,7 +594,12 @@ namespace Webpin.Widgets.Views {
                 }
                 reset_grab_color_and_icon ();
                 update_app_icon ();
+                is_dirty = false;
             }
+        }
+
+        public bool has_changes () {
+            return is_dirty;
         }
     }
 }

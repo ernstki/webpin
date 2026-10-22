@@ -1,7 +1,8 @@
 .PHONY: build
 build: build/com.github.artemanufrij.webpin
 
-build/com.github.artemanufrij.webpin: build/build.ninja
+SOURCES = $(shell find src -name "*.vala")
+build/com.github.artemanufrij.webpin: build/build.ninja $(SOURCES)
 	cd build && ninja
 
 build/build.ninja:

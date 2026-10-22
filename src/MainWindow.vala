@@ -134,6 +134,21 @@ namespace Webpin {
                 return false;
             });
 
+            this.key_press_event.connect ((event) => {
+                if ((event.state & Gdk.ModifierType.CONTROL_MASK) != 0 && event.keyval == Gdk.Key.n) {
+                    if (add_button.visible) {
+                        show_assistant ();
+                        return true;
+                    }
+                } else if (event.keyval == Gdk.Key.Escape) {
+                    if (stack.visible_child_name == "editor" && !editor.has_changes ()) {
+                        back_button.clicked ();
+                        return true;
+                    }
+                }
+                return false;
+            });
+
             this.restore_settings ();
             show_all ();
 
