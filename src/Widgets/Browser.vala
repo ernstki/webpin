@@ -134,7 +134,16 @@ namespace Webpin.Widgets {
                 app_notification.send_notification ();
 
                 external_request (action);
-                return new WebKit.WebView ();
+
+                // Returning a raw, unparented WebView here causes modern WebKitGTK to crash
+                // (Assertion 'this->_M_is_engaged()' failed) when it tries to apply WindowFeatures.
+                // While the API signature expects a WebView (leading one to think a blank object
+                // is required to avoid segfaults), returning null is actually the correct control
+                // value. It tells WebKit we handled the navigation externally and to abort creation.
+                // Sources:
+                // https://webkitgtk.org/reference/webkit2gtk/stable/WebKitWebView.html#WebKitWebView-create
+                // https://valadoc.org/webkit2gtk-4.0/WebKit.WebView.create.html
+                return null;
             });
 
             web_view.load_failed.connect ((load_event, failing_uri, error) => {
