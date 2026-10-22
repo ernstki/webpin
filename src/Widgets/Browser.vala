@@ -137,6 +137,16 @@ namespace Webpin.Widgets {
                 return new WebKit.WebView ();
             });
 
+            web_view.load_failed.connect ((load_event, failing_uri, error) => {
+                warning ("Load failed for URI: %s. Error: %s (Code: %d)", failing_uri, error.message, error.code);
+                return false;
+            });
+
+            web_view.load_failed_with_tls_errors.connect ((failing_uri, certificate, errors) => {
+                warning ("TLS Load failed for URI: %s", failing_uri);
+                return false;
+            });
+
             web_view.load_changed.connect ((load_event) => {
                 request_begin ();
                 if (load_event == WebKit.LoadEvent.FINISHED) {
