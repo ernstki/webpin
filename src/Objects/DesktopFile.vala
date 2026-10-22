@@ -193,7 +193,16 @@ namespace Webpin {
             this.name = info.get_display_name ();
             this.icon = info.get_icon ().to_string ();
             try {
-                this.url = file.get_string ("Desktop Entry", "Exec").substring (Webpin.APP_ID.length + 1);
+                string exec_string = file.get_string ("Desktop Entry", "Exec");
+                string[] argv;
+                if (GLib.Shell.parse_argv (exec_string, out argv)) {
+                    if (argv.length > 1) {
+                        this.url = argv[1];
+                    } else {
+                        warning ("No URL found in Exec line for %s", this.name);
+                        this.url = "";
+                    }
+                }
             } catch (Error err) {
                 warning (err.message);
                 this.url = "";
