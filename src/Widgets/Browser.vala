@@ -48,7 +48,8 @@ namespace Webpin.Widgets {
             this.transition_duration = 350;
             this.transition_type = Gtk.StackTransitionType.SLIDE_UP;
 
-            string cookie_db = Environment.get_user_cache_dir () + "/webpin/cookies/";
+            string cookie_db = Environment.get_user_cache_dir ()
+                               + "/" + Webpin.APP_ID + "/";
             var dir = GLib.File.new_for_path (cookie_db);
             if (!dir.query_exists (null)) {
                 try {
@@ -58,19 +59,27 @@ namespace Webpin.Widgets {
                 }
             }
 
-            web_view = new WebKit.WebView.with_context (WebKit.WebContext.get_default ()) {
+            var context = WebKit.WebContext.get_default ();
+            context.set_spell_checking_enabled(true);
+            context.set_spell_checking_languages({"en_US", "de_DE"});
+
+            web_view = new WebKit.WebView.with_context (context) {
                 settings = new WebKit.Settings () {
                     enable_back_forward_navigation_gestures = true,
                     enable_mediasource = true,
                     enable_webgl = true
                 }
             };
-            web_view.web_context.set_spell_checking_enabled(true);
-            web_view.web_context.set_spell_checking_languages({"en_US", "de_DE"});
 
-            cookie_manager = web_view.web_context.get_cookie_manager ();
+            cookie_manager = context.get_cookie_manager ();
             cookie_manager.set_accept_policy (WebKit.CookieAcceptPolicy.ALWAYS);
-            cookie_manager.set_persistent_storage (cookie_db + "cookies.db", WebKit.CookiePersistentStorage.SQLITE);
+
+            if (desktop_file.save_cookies) {
+                cookie_manager.set_persistent_storage (
+                    cookie_db + desktop_file.cookie_db_name,
+                    WebKit.CookiePersistentStorage.SQLITE
+                );
+            }
 
             web_view.load_uri (desktop_file.url);
 
@@ -105,7 +114,7 @@ namespace Webpin.Widgets {
                     icon_for_notification = GLib.Icon.new_for_string (desktop_file.icon);
                 } catch (Error err) {
                     warning (err.message);
-                    icon = new Gtk.Image.from_icon_name ("com.github.artemanufrij.webpin", Gtk.IconSize.DIALOG);
+                    icon = new Gtk.Image.from_icon_name (Webpin.APP_ID, Gtk.IconSize.DIALOG);
                 }
             } else {
                 icon = new Gtk.Image.from_icon_name (desktop_file.icon, Gtk.IconSize.DIALOG);

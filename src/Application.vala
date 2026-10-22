@@ -27,6 +27,8 @@
  */
 
 namespace Webpin {
+    public const string APP_ID = "com.github.artemanufrij.webpin";
+
     public class WebpinApp : Gtk.Application {
         public string CACHE_FOLDER { get; private set; }
 
@@ -64,7 +66,7 @@ namespace Webpin {
         public Gtk.Window mainwindow { get; private set; default = null; }
 
         public void create_cache_folders () {
-            CACHE_FOLDER = GLib.Path.build_filename (GLib.Environment.get_user_cache_dir (), "com.github.artemanufrij.webpin");
+            CACHE_FOLDER = GLib.Path.build_filename (GLib.Environment.get_user_cache_dir (), APP_ID);
             try {
                 File file = File.new_for_path (CACHE_FOLDER);
                 if (!file.query_exists ()) {
@@ -173,7 +175,7 @@ static int main (string[] args) {
         var id = "a" + checksum.get_string ().substring (0, 5) + "a.artemanufrij.webpin";
         app.application_id = id;
     } else {
-        app.application_id = "com.github.artemanufrij.webpin";
+        app.application_id = Webpin.APP_ID;
     }
     return app.run (args);
 }

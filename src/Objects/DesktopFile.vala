@@ -34,13 +34,13 @@ namespace Webpin {
                             Name=Webpin
                             GenericName=Web app
                             Comment=Webpin web app
-                            Exec=com.github.artemanufrij.webpin
+                            Exec=%s
                             Keywords=webpin;webapp;internet;
                             Icon=application-default-icon
                             Terminal=false
                             Type=Application
                             Categories=Network;
-                            X-GNOME-Gettext-Domain=com.github.artemanufrij.webpin
+                            X-GNOME-Gettext-Domain=%s
                             X-GNOME-UsesNotifications=true
                             StartupWMClass=Webpin
                             X-Webpin-PrimaryColor=rgba (222,222,222,1)
@@ -50,7 +50,7 @@ namespace Webpin {
 
                             [Desktop Action Remove]
                             Name=Remove Webapp
-                            Exec=com.github.artemanufrij.webpin --remove
+                            Exec=%s --remove
                             Icon=edit-delete-symbolic
                             """;
 
@@ -82,6 +82,32 @@ namespace Webpin {
                     warning (err.message);
                 }
                 return false;
+            }
+        }
+
+        public bool save_cookies {
+            get {
+                try {
+                    file.load_from_file (info.filename, KeyFileFlags.NONE);
+                    return file.get_string ("Desktop Entry", "X-Webpin-SaveCookies") == "true";
+                } catch (Error err) {
+                    warning (err.message);
+                }
+                return false;
+            }
+        }
+
+        public string cookie_db_name {
+            owned get {
+                try {
+                    file.load_from_file (info.filename, KeyFileFlags.NONE);
+                    if (file.has_key ("Desktop Entry", "X-Webpin-CookieDB")) {
+                        return file.get_string ("Desktop Entry", "X-Webpin-CookieDB");
+                    }
+                } catch (Error err) {
+                    warning (err.message);
+                }
+                return name.replace (" ", "_").down () + "_cookies.db";
             }
         }
 
@@ -130,14 +156,14 @@ namespace Webpin {
             }
         }
 
-        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui, bool auto_dark_mode) {
+        public DesktopFile (string name, string url, string icon, bool stay_open, bool minimal_ui, bool auto_dark_mode, bool save_cookies) {
             this.name = name;
             this.url = url.replace ("%", "%%");
             this.icon = icon;
 
             file = new GLib.KeyFile();
             try {
-                file.load_from_data (template, -1, GLib.KeyFileFlags.NONE);
+                file.load_from_data (template.printf (Webpin.APP_ID, Webpin.APP_ID, Webpin.APP_ID), -1, GLib.KeyFileFlags.NONE);
             } catch (Error err) {
                 warning (err.message);
             }
@@ -145,13 +171,15 @@ namespace Webpin {
             file.set_string ("Desktop Entry", "Name", name);
             file.set_string ("Desktop Entry", "GenericName", name);
             file.set_string ("Desktop Entry", "X-GNOME-FullName", name);
-            file.set_string ("Desktop Entry", "Exec", "com.github.artemanufrij.webpin " + url);
+            file.set_string ("Desktop Entry", "Exec", Webpin.APP_ID + " " + url);
             file.set_string ("Desktop Entry", "Icon", icon);
             file.set_string ("Desktop Entry", "StartupWMClass", url);
             file.set_string ("Desktop Entry", "X-Webpin-StayOpen", stay_open.to_string ());
             file.set_string ("Desktop Entry", "X-Webpin-View-Mode", minimal_ui ? "minimal" : "default");
             file.set_string ("Desktop Entry", "X-Webpin-AutoDarkMode", auto_dark_mode.to_string ());
-            file.set_string ("Desktop Action Remove", "Exec", "com.github.artemanufrij.webpin --remove " + url);
+            file.set_string ("Desktop Entry", "X-Webpin-SaveCookies", save_cookies.to_string ());
+            file.set_string ("Desktop Entry", "X-Webpin-CookieDB", name.replace (" ", "_").down () + "_cookies.db");
+            file.set_string ("Desktop Action Remove", "Exec", Webpin.APP_ID + " --remove " + url);
         }
 
         public DesktopFile.from_desktopappinfo (GLib.DesktopAppInfo info) {
