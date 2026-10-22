@@ -1,8 +1,13 @@
 .PHONY: build
-build:
-	if [ -d build ]; then meson build --wipe; else meson build; fi
+build: build/com.github.artemanufrij.webpin
 
-install:
+build/com.github.artemanufrij.webpin: build/build.ninja
+	cd build && ninja
+
+build/build.ninja:
+	meson build $(if $(WIPE),--wipe)
+
+install: build/com.github.artemanufrij.webpin
 	meson install -C build
 
 clean:
