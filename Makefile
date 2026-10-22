@@ -1,19 +1,25 @@
+SOURCES = $(shell find src -name "*.vala")
+PREFIX ?= /usr/local
+
 .PHONY: build
 build: build/com.github.artemanufrij.webpin
 
-SOURCES = $(shell find src -name "*.vala")
 build/com.github.artemanufrij.webpin: build/build.ninja $(SOURCES)
 	cd build && ninja
 
 build/build.ninja:
-	meson build $(if $(WIPE),--wipe)
+	meson build --prefix="$(PREFIX)" $(if $(WIPE),--wipe)
 
 install: build/com.github.artemanufrij.webpin
 	meson install -C build
 
+uninstall: build/build.ninja
+	cd build && sudo ninja uninstall
+
 clean:
 	# remove rejected patches
-	find . \( -name "*.orig" -o -name "*.rej" \) -delete
+	-find . \( -name "*.orig" -o -name "*.rej" \) -delete
+	-rm -rf build
 
 update-desktop-db:
 	# because the version of Meson I have doesn't support update_mime_database
