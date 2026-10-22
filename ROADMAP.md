@@ -2,6 +2,79 @@
 
     Assisted-by: aider 0.86.2 + gemini/gemini-3.1-pro-preview
 
+## Domain restriction (like Fluid.app)
+
+In response to my question:
+
+> ok, let's think about that "domain restriction logic" again. what's the
+> simplest thing that could possibly work, which doesn't require UI to
+> configure a white list? It'd ALMOST be sufficient to use the top-level domain
+> of the URL associated with the web app, except that Microsoft 365 apps
+> nowadays use six different crazy-ass URLs in TLDs I've never even heard of
+> before, so that wouldn't work there. What would you propose?
+
+Gemini responded with this cogent advice:
+
+> This is the classic Site-Specific Browser (SSB) dilemma. You've hit the nail on
+> the head: modern web ecosystems like Microsoft 365, Google Workspace, and
+> Atlassian use a tangled web of domains (`office.com`, `sharepoint.com`,
+> `live.com`, `microsoftonline.com`). If you strictly lock the app to the base
+> domain, you break Single Sign-On (SSO) and cross-app navigation.
+>
+> If we want the **simplest thing that could possibly work with zero
+> configuration**, I propose we actually **don't restrict same-window navigation
+> at all**, and instead rely entirely on two things:
+>
+> ### 1. Rely on `target="_blank"` (The `create` signal)
+>
+> Web developers almost universally follow a standard convention:
+>
+> * Internal app navigation (even across their own weird domains like
+>   `office.com` to `sharepoint.com`) happens in the **same tab**.
+> * Links to truly external websites (e.g., a Wikipedia link inside a Word
+>   document) are given `target="_blank"` to open in a **new tab**.
+>
+> Because we just fixed the `create` signal in `Browser.vala` to intercept new
+> window requests and pass them to `xdg-open`, **Webpin is already handling 95%
+> of external links perfectly.** They will automatically pop out to
+> Firefox/Chrome.
+>
+> ### 2. The Context Menu (User Override)
+>
+> For the remaining 5% of external links that don't have `target="_blank"`, the
+> user can just right-click and use the **"Open Link in Default Browser"**
+> context menu item we just discussed.
+>
+> If they accidentally left-click an external link and navigate away from the
+> app, Webpin already has a "Back" button and a "Home" button in the header bar
+> to instantly recover.
+>
+> ### Why other programmatic heuristics fail:
+>
+> If you *really* wanted to block same-window navigation programmatically
+> without a whitelist, you'd have to try something like:
+>
+> * **Checking if it's a redirect vs. a click:** (Allow redirects for SSO, block
+>   clicks). But MS365's "App Launcher" waffle menu uses explicit clicks to jump
+>   from `office.com` to `sharepoint.com`. It would block them.
+> * **Checking CORS/Referrer headers:** Too complex and unreliable.
+>
+> ### My Recommendation
+>
+> Keep it simple.
+>
+> 1. Let the `create` signal handle `target="_blank"` links (which routes them
+>    to the default browser).
+> 2. Add the "Open Link in Default Browser" context menu item.
+> 3. Trust the user to use the "Back" or "Home" button if they wander off-site
+>    in the main view.
+>
+> If you agree, we can just apply the Context Menu change we talked about in
+> the previous step, and leave the `decide-policy` domain-restriction logic out
+> entirely. What do you think?
+
+----
+
 ## [DONE] True Per-App Isolation
 
 _Implemented in 9e3db6d_.

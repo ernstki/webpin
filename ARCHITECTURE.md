@@ -1,6 +1,8 @@
-## Data storage
+# Webpin Architecture Notes
 
     Assisted-by: aider 0.86.2 + gemini/gemini-3.1-pro-preview
+
+## Data storage
 
 Based on the code provided and the standard behavior of the libraries WebPin
 uses (GLib, GTK, WebKitGTK), here is a summary of where the application writes
