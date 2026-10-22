@@ -193,9 +193,10 @@ namespace Webpin {
             this.name = info.get_display_name ();
             this.icon = info.get_icon ().to_string ();
             try {
-                this.url = file.get_string ("Desktop Entry", "Exec").substring (31);
+                this.url = file.get_string ("Desktop Entry", "Exec").substring (Webpin.APP_ID.length + 1);
             } catch (Error err) {
                 warning (err.message);
+                this.url = "";
             }
         }
 

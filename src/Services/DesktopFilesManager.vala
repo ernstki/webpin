@@ -31,7 +31,7 @@ namespace Webpin.Services {
             foreach (GLib.AppInfo app in GLib.AppInfo.get_all ()) {
                 var desktop_app = new GLib.DesktopAppInfo (app.get_id ());
                 var exec = desktop_app.get_string ("Exec");
-                if (exec != null) {
+                if (exec != null && exec.contains (Webpin.APP_ID)) {
                     exec = exec.replace ("%%", "%");
                     if (exec.contains (url)) {
                         return desktop_app;
