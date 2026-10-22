@@ -48,18 +48,23 @@ namespace Webpin.Widgets {
             this.transition_duration = 350;
             this.transition_type = Gtk.StackTransitionType.SLIDE_UP;
 
-            string cookie_db = Environment.get_user_cache_dir ()
-                               + "/" + Webpin.APP_ID + "/";
-            var dir = GLib.File.new_for_path (cookie_db);
-            if (!dir.query_exists (null)) {
-                try {
-                    dir.make_directory_with_parents (null);
-                } catch (Error err) {
-                    warning ("Could not create caching directory.");
-                }
+            WebKit.WebsiteDataManager data_manager;
+
+            if (desktop_file.save_cookies) {
+                string safe_name = desktop_file.name.replace (" ", "_").down ();
+                string app_data_dir = Environment.get_user_data_dir () + "/" + Webpin.APP_ID + "/" + safe_name;
+                string app_cache_dir = Environment.get_user_cache_dir () + "/" + Webpin.APP_ID + "/" + safe_name;
+
+                data_manager = (WebKit.WebsiteDataManager) GLib.Object.new (
+                    typeof (WebKit.WebsiteDataManager),
+                    "base-data-directory", app_data_dir,
+                    "base-cache-directory", app_cache_dir
+                );
+            } else {
+                data_manager = new WebKit.WebsiteDataManager.ephemeral ();
             }
 
-            var context = WebKit.WebContext.get_default ();
+            var context = new WebKit.WebContext.with_website_data_manager (data_manager);
             context.set_spell_checking_enabled(true);
             context.set_spell_checking_languages({"en_US", "de_DE"});
 
@@ -67,7 +72,9 @@ namespace Webpin.Widgets {
                 settings = new WebKit.Settings () {
                     enable_back_forward_navigation_gestures = true,
                     enable_mediasource = true,
-                    enable_webgl = true
+                    enable_webgl = true,
+                    // enable_tracking_prevention = false,
+                    enable_developer_extras = true
                 }
             };
 
@@ -75,10 +82,10 @@ namespace Webpin.Widgets {
             cookie_manager.set_accept_policy (WebKit.CookieAcceptPolicy.ALWAYS);
 
             if (desktop_file.save_cookies) {
-                cookie_manager.set_persistent_storage (
-                    cookie_db + desktop_file.cookie_db_name,
-                    WebKit.CookiePersistentStorage.SQLITE
-                );
+                string safe_name = desktop_file.name.replace (" ", "_").down ();
+                string cookie_file = Environment.get_user_data_dir () + "/"
+                                     + Webpin.APP_ID + "/" + safe_name + "/cookies.sqlite";
+                cookie_manager.set_persistent_storage (cookie_file, WebKit.CookiePersistentStorage.SQLITE);
             }
 
             web_view.load_uri (desktop_file.url);
