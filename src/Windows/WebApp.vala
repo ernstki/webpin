@@ -54,8 +54,7 @@ namespace Webpin.Windows {
             headerbar.show_close_button = true;
             headerbar.get_style_context ().add_class ("default-decoration");
 
-            header_build_open_in_browser_button ();
-            header_build_copy_button ();
+            header_build_link_button ();
 
             if (desktop_file.view_mode == "default") {
                 header_build_pin_button ();
@@ -176,32 +175,28 @@ namespace Webpin.Windows {
             headerbar.pack_start (button_refresh);
         }
 
-        private void header_build_copy_button () {
-            var copy_url = new Gtk.Button.from_icon_name ("edit-copy-symbolic", Gtk.IconSize.MENU);
-            copy_url.valign = Gtk.Align.CENTER;
-            copy_url.tooltip_text = _ ("Copy URL");
-            copy_url.can_focus = false;
-            copy_url.clicked.connect (() => {
-                Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
-                browser.show_toast (_ ("URL copied to clipboard"));
-            });
-            headerbar.pack_end (copy_url);
-        }
+        private void header_build_link_button () {
+            var link_btn = new Gtk.Button.from_icon_name ("insert-link-symbolic", Gtk.IconSize.MENU);
+            link_btn.valign = Gtk.Align.CENTER;
+            link_btn.tooltip_text = _ ("Copy URL (with Shift: open in default browser)");
+            link_btn.can_focus = false;
+            link_btn.clicked.connect (() => {
+                Gdk.ModifierType state;
+                Gtk.get_current_event_state (out state);
 
-        private void header_build_open_in_browser_button () {
-            var open_browser = new Gtk.Button.from_icon_name ("edit-redo-symbolic", Gtk.IconSize.MENU);
-            open_browser.valign = Gtk.Align.CENTER;
-            open_browser.tooltip_text = _ ("Open current page in default browser");
-            open_browser.can_focus = false;
-            open_browser.clicked.connect (() => {
-                try {
-                    browser.show_toast (_ ("Opening current page in your default browser…"));
-                    GLib.AppInfo.launch_default_for_uri (browser.web_view.uri, null);
-                } catch (Error e) {
-                    warning (e.message);
+                if ((state & Gdk.ModifierType.SHIFT_MASK) != 0) {
+                    try {
+                        browser.show_toast (_ ("Opening current page in your default browser…"));
+                        GLib.AppInfo.launch_default_for_uri (browser.web_view.uri, null);
+                    } catch (Error e) {
+                        warning (e.message);
+                    }
+                } else {
+                    Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
+                    browser.show_toast (_ ("URL copied to clipboard"));
                 }
             });
-            headerbar.pack_end (open_browser);
+            headerbar.pack_end (link_btn);
         }
 
         private void header_build_pin_button () {
