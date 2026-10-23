@@ -135,15 +135,46 @@ namespace Webpin.Widgets {
 
                 external_request (action);
 
-                // Returning a raw, unparented WebView here causes modern WebKitGTK to crash
-                // (Assertion 'this->_M_is_engaged()' failed) when it tries to apply WindowFeatures.
-                // While the API signature expects a WebView (leading one to think a blank object
-                // is required to avoid segfaults), returning null is actually the correct control
-                // value. It tells WebKit we handled the navigation externally and to abort creation.
-                // Sources:
-                // https://webkitgtk.org/reference/webkit2gtk/stable/WebKitWebView.html#WebKitWebView-create
-                // https://valadoc.org/webkit2gtk-4.0/WebKit.WebView.create.html
+                // Returning a raw, unparented WebView here causes modern WebKitGTK to
+                // crash with `Assertion 'this->_M_is_engaged()' failed`. Returning
+                // null instead tells WebKit "to propagate the event further,"
+                // (whatever that means) but in effect avoids the assertion error.
+                // ref: https://valadoc.org/webkit2gtk-4.0/WebKit.WebView.create.html
                 return null;
+            });
+
+            // replace "Open Link in New Window" with the more honest "Open Link in Default
+            // Browser"; see Windows/WebApp.vala for the `browser.external_request.connect`
+            // implementation which would've handled this otherwise
+            web_view.context_menu.connect ((context_menu, event, hit_test_result) => {
+                if (hit_test_result.context_is_link ()) {
+                    int position = 0;
+                    WebKit.ContextMenuItem? item_to_remove = null;
+                    foreach (var item in context_menu.get_items ()) {
+                        if (item.get_stock_action () == WebKit.ContextMenuAction.OPEN_LINK_IN_NEW_WINDOW) {
+                            item_to_remove = item;
+                            break;
+                        }
+                        position++;
+                    }
+
+                    if (item_to_remove != null) {
+                        context_menu.remove (item_to_remove);
+                        var action = new GLib.SimpleAction ("open-default-browser", null);
+                        action.activate.connect (() => {
+                            app_notification.title = _ ("Opening link in your default browser…");
+                            app_notification.send_notification ();
+                            try {
+                                GLib.AppInfo.launch_default_for_uri (hit_test_result.get_link_uri (), null);
+                            } catch (Error e) {
+                                warning (e.message);
+                            }
+                        });
+                        var custom_item = new WebKit.ContextMenuItem.from_gaction (action, _("Open Link in Default Browser"), null);
+                        context_menu.insert (custom_item, position);
+                    }
+                }
+                return false;
             });
 
             web_view.load_failed.connect ((load_event, failing_uri, error) => {

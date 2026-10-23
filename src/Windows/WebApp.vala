@@ -84,9 +84,12 @@ namespace Webpin.Windows {
                 return false;
             });
 
+            // handler for target="_blank" windows and (by default) the "Open
+            // Link in New Window" context menu item, except that we replace
+            // that menu item in Widgets/Browser.vala
             browser.external_request.connect ((action) => {
                 try {
-                    Process.spawn_command_line_async ("xdg-open " + action.get_request ().uri);
+                    GLib.AppInfo.launch_default_for_uri (action.get_request ().uri, null);
                 } catch (Error e) {
                     warning (e.message);
                 }
