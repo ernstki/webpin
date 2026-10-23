@@ -28,6 +28,10 @@
 
 namespace Webpin.Windows {
     public class WebApp : Gtk.Window {
+        // silences the Vala deprecation warning for set_wmclass; see below
+        [CCode (cname = "gtk_window_set_wmclass")]
+        private extern static void gtk_window_set_wmclass (Gtk.Window window, string name, string klass);
+
         Gdk.WindowState current_state;
 
         Gtk.HeaderBar headerbar;
@@ -40,7 +44,10 @@ namespace Webpin.Windows {
 
         public WebApp (DesktopFile desktop_file) {
             this.desktop_file = desktop_file;
-            this.set_wmclass (desktop_file.url, desktop_file.url);
+
+            // original: this.set_wmclass (desktop_file.url, desktop_file.url);
+            gtk_window_set_wmclass (this, desktop_file.url, desktop_file.url);
+
             this.events |= Gdk.EventMask.STRUCTURE_MASK;
 
             var color = desktop_file.color;

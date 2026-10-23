@@ -140,7 +140,7 @@ namespace Webpin.Widgets {
                 // null instead tells WebKit "to propagate the event further,"
                 // (whatever that means) but in effect avoids the assertion error.
                 // ref: https://valadoc.org/webkit2gtk-4.0/WebKit.WebView.create.html
-                return null;
+                return null as Gtk.Widget;
             });
 
             // replace "Open Link in New Window" with the more honest "Open Link in Default

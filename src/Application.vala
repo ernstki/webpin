@@ -131,7 +131,9 @@ namespace Webpin {
             if (new_app) {
                 if (new_app) {
                     activate ();
-                    (mainwindow as MainWindow).show_assistant ();
+                    if (mainwindow is MainWindow) {
+                        ((MainWindow) mainwindow).show_assistant ();
+                    }
                 }
                 return;
             }

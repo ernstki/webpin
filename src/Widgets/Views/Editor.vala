@@ -387,8 +387,11 @@ namespace Webpin.Widgets.Views {
 
             // session.send_message (msg);
             // (libsoup 3.0)
-            GLib.Bytes bytes = session.send_and_read(msg, null);
-            string body = (string)bytes.get_data();
+            try {
+                session.send_and_read(msg, null);
+            } catch (Error e) {
+                warning (e.message);
+            }
 
             if (msg.status_code == 200) {
                 tmp_icon_ext = ".png";
@@ -405,11 +408,11 @@ namespace Webpin.Widgets.Views {
                 var d_file = File.new_for_path (tmp_icon_file);
 
                 bool copy_done = false;
-                // try {
-                copy_done = s_file.copy (d_file, FileCopyFlags.OVERWRITE);
-                // } catch (Error err) {
-                //     stdout.printf ("%s\n", err.message);
-                // }
+                try {
+                    copy_done = s_file.copy (d_file, FileCopyFlags.OVERWRITE);
+                } catch (Error err) {
+                    warning (err.message);
+                }
                 if (copy_done && tmp_icon_ext != ".svg") {
                     try {
                         var pixbuf = new Gdk.Pixbuf.from_file (tmp_icon_file);
