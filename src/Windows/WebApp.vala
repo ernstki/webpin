@@ -183,6 +183,7 @@ namespace Webpin.Windows {
             copy_url.can_focus = false;
             copy_url.clicked.connect (() => {
                 Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
+                browser.show_toast (_ ("URL copied to clipboard"));
             });
             headerbar.pack_end (copy_url);
         }
@@ -190,10 +191,11 @@ namespace Webpin.Windows {
         private void header_build_open_in_browser_button () {
             var open_browser = new Gtk.Button.from_icon_name ("edit-redo-symbolic", Gtk.IconSize.MENU);
             open_browser.valign = Gtk.Align.CENTER;
-            open_browser.tooltip_text = _ ("Open URL in default browser");
+            open_browser.tooltip_text = _ ("Open current page in default browser");
             open_browser.can_focus = false;
             open_browser.clicked.connect (() => {
                 try {
+                    browser.show_toast (_ ("Opening current page in your default browser…"));
                     GLib.AppInfo.launch_default_for_uri (browser.web_view.uri, null);
                 } catch (Error e) {
                     warning (e.message);

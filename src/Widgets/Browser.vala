@@ -264,5 +264,10 @@ namespace Webpin.Widgets {
         public void reload_bypass_cache () {
             web_view.reload_bypass_cache ();
         }
+
+        public void show_toast (string title) {
+            app_notification.title = title;
+            app_notification.send_notification ();
+        }
     }
 }
