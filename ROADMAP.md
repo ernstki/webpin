@@ -2,6 +2,18 @@
 
     Assisted-by: aider 0.86.2 + gemini/gemini-3.1-pro-preview
 
+## Icon cleanup
+
+Icons for the web apps are just dumped, often with no extension, into
+`~/.cache/com.github.artemanufrij.webpin`. I think those should be, firstly, in
+`~/.local/share` instead, and that they should be inside per-app directories,
+named something like `icon.png`.
+
+We'll also want, like, a `sed` command or something in the README (at a
+minimum), to update all the existing `.desktop` files, or else try to do it at
+run-time in Vala code.
+
+
 ## Domain restriction (like Fluid.app)
 
 In response to my question:
