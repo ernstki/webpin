@@ -25,5 +25,10 @@
 			<summary>Use Dark Theme.</summary>
 			<description>Use Dark Theme.</description>
 		</key>
+		<key name="enable-developer-extras" type="b">
+			<default>false</default>
+			<summary>Enable web inspector</summary>
+			<description>Enable the WebKit web inspector for debugging.</description>
+		</key>
 	</schema>
 </schemalist>

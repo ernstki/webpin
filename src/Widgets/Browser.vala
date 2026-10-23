@@ -74,7 +74,7 @@ namespace Webpin.Widgets {
                     enable_mediasource = true,
                     enable_webgl = true,
                     // enable_tracking_prevention = false,
-                    enable_developer_extras = true
+                    enable_developer_extras = Settings.get_default ().enable_developer_extras
                 }
             };
 

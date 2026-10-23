@@ -40,6 +40,7 @@ namespace Webpin {
         public int window_height { get; set; }
         public WindowState window_state { get; set; }
         public bool use_dark_theme { get; set; }
+        public bool enable_developer_extras { get; set; }
 
         private Settings () {
             base ("com.github.artemanufrij.webpin");
