@@ -131,7 +131,7 @@ namespace Webpin.Widgets.Views {
 
             //checkbuttons
             save_cookies_check = new Gtk.CheckButton.with_label (_ ("Save cookies"));
-            save_cookies_check.active = true;
+            save_cookies_check.active = false;
 
             // TODO: Password saving is currently unimplemented. Hiding for now.
             // save_password_check = new Gtk.CheckButton.with_label (_ ("Save login information"));
@@ -142,11 +142,11 @@ namespace Webpin.Widgets.Views {
 
             minimal_view_mode = new Gtk.CheckButton.with_label (_("Use minimal UI"));
             minimal_view_mode.tooltip_text = _ ("Hide the header bar and navigation buttons for a cleaner look");
-            minimal_view_mode.active = false;
+            minimal_view_mode.active = true;
 
             auto_dark_mode_check = new Gtk.CheckButton.with_label (_("Automatic dark mode"));
             auto_dark_mode_check.tooltip_text = _ ("Automatically switch app and website UI to a dark theme based on the chosen titlebar colors");
-            auto_dark_mode_check.active = false;
+            auto_dark_mode_check.active = true;
 
 
             //app information section
