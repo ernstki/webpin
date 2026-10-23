@@ -54,6 +54,7 @@ namespace Webpin.Windows {
             headerbar.show_close_button = true;
             headerbar.get_style_context ().add_class ("default-decoration");
 
+            header_build_open_in_browser_button ();
             header_build_copy_button ();
 
             if (desktop_file.view_mode == "default") {
@@ -178,16 +179,25 @@ namespace Webpin.Windows {
         private void header_build_copy_button () {
             var copy_url = new Gtk.Button.from_icon_name ("insert-link-symbolic", Gtk.IconSize.MENU);
             copy_url.valign = Gtk.Align.CENTER;
-            copy_url.tooltip_text = _ ("Copy URL into clipboard");
+            copy_url.tooltip_text = _ ("Copy URL");
             copy_url.clicked.connect (() => {
                 Gtk.Clipboard.get_default (Gdk.Display.get_default ()).set_text (browser.web_view.uri, -1);
-                //try {
-                //    Process.spawn_command_line_async ("xdg-open " + browser.web_view.uri);
-                //} catch (Error e) {
-                //    warning (e.message);
-                //}
             });
             headerbar.pack_end (copy_url);
+        }
+
+        private void header_build_open_in_browser_button () {
+            var open_browser = new Gtk.Button.from_icon_name ("edit-redo-symbolic", Gtk.IconSize.MENU);
+            open_browser.valign = Gtk.Align.CENTER;
+            open_browser.tooltip_text = _ ("Open URL in default browser");
+            open_browser.clicked.connect (() => {
+                try {
+                    GLib.AppInfo.launch_default_for_uri (browser.web_view.uri, null);
+                } catch (Error e) {
+                    warning (e.message);
+                }
+            });
+            headerbar.pack_end (open_browser);
         }
 
         private void header_build_pin_button () {
