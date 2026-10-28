@@ -1,5 +1,6 @@
 *~
 .*sw?
+core*
 .vscode/
 build/
 .aider*
